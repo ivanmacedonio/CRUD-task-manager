@@ -1,0 +1,209 @@
+-para iniciar una aplicaion hacemos el python manage.py  startapp  "nombre de app
+
+-desde settings en la seccion de apps debemos incluirlas en installed apps
+
+-en views se  codea la parte que vamos a querer enviarle al cliente o navegador, la parte del "que"se ejecuta
+
+-el init hace que python recononozca como un modulo importable a la app
+
+-en admin vamos a tener el panel de administrador con ciertas apps para administrar el proyecto
+
+-en models creamos las clases que pasan a convertirse en tablas de SQL, aunque nosotros nos comunicamos con
+la bbdd desde el orm que nos ofrece django.
+
+-en test podemos testear nuestras views
+
+BBDD----- (sqlite3)
+
+-migraciones generan tablas o relaciones entre django y la bbdd, desde el propio django
+
+- con makemigrations guarda las migraciones, y migrate las envia a la bbdd
+
+-desde models podemos hacer el crud referido a las tablas de las bbdd
+
+SHELL----------
+
+python manage.py shell abre el shell, en el cual podemos interactuar con las tablas
+
+-importamos de la app las tablas, con from myapp.models import clase1, clase2
+
+-creamos una variable con el nombre que sea y la igualamos a la tabla donde queremos trabajar y 
+le indicamos los valores que tomara cada columna, creando asi la row, luego ejecutamos nombredevariable.save
+
+--- p= Proyect(name='aplicacion movil')
+>>> p.save()
+
+devuelve todos los objetos de la tabla que indiquemos
+>>> Proyect.objects.all()
+
+devuelve con condiconal 
+>>> Proyect.objects.get(id=1)  --- devuelve el objeto con id=1
+
+Agregar datos a una tabla conectada a otra
+
+>>> p= Proyect.objects.get(id=1)
+
+>>> p.task_set.create(title='Acomodar ropa')  task es una tabla proyect es otra
+
+>>> Proyect.objects.filter(name__startswith="aplicacion") devuelve la row que comience con la palabra indicanda
+
+PARAMS-------
+
+recibimos datos desde el url y el navegador los interpreta y los usa de parametro para funciones 
+
+ejemplo
+
+en el path indicamos que dato seguira del slash para que se envie como parametro
+
+path('saludo/<str:username>',hello),
+
+
+y en la view debemos agregarlo al lado del request
+
+
+def hello(request, username):
+
+
+    return HttpResponse("<h1>Hello %s</h1>" % username)
+
+cuando en la web pongamos saludo/ivan, ivan se envia por parametro al httpresponse y printea hello ivan
+
+
+----ENVIAR PARAMETROS A BBDD
+
+si en las views importamos los modelos podemos realizar consultas SQL
+
+def proyects(request): llamamos a proyects
+
+    proyects= list(Proyect.objects.values())  devuelve una lista con todos los datos de las rows de la tabla
+					indicada
+
+    return JsonResponse (proyects,safe=False) le damos return en formato json para convertir la lista
+						en un formato que la web pueda reconocer, ademas debemos
+						desbloquearlo para uso libre con safe=false
+
+
+
+def tasks(request, id): le enviamos una id a tarea
+
+    task= Task.objects.get(id=id) devuelve la tarea con la id correspondiente
+
+    return HttpResponse ("task: %s" %task.title) printea la consulta
+
+
+----ADMIN
+
+entrando a la url nos pide el superuser con python manage.py createsuperuser, y esos datos nos loguea
+
+en ese apartado podemos ver los usuarios que se loguean y grupos que se crean, ademas podemos usarlo
+para modificar las tablas, donde entra en juego el admin.py del proyecto 
+
+con admin.site.register(nombre del model) podemos importarlo al panel de administrador, donde desde ahi
+podemos editarlo y agregar rows a las tablas
+
+--RENDER
+
+creamos una carpeta exclusiva para templates, los cuales van a ser devueltos por los model
+
+es una forma de devolver largos y editados textos en html desde otro apartado sin tener que escribir
+
+el string en el return en la funcion 
+
+.importamos render desde shortcuts y en la funcion cambiamos el return
+
+def index(request):
+
+    return render(request, 'index.html') indicamos request xq esta funcion pide el html que no esta en su modulo
+
+mas ejemplos
+
+
+def proyects(request):
+
+    proyects= list(Proyect.objects.values())
+
+    return render (request, 'proyects.html')
+
+def tasks(request, id):
+
+    #task= Task.objects.get(id=id)
+
+    task= get_object_or_404(Task, id=id) #lo mismo que 34 pero si no encuentra registro
+    #lanza un 404
+
+    return render (request, 'tasks.html')
+
+PASARLE PARAMETROS A HTML
+
+def index(request):
+
+    title= 'Welcome!!'
+
+    return render(request, 'index.html', {
+
+        'title':title
+    })
+
+le estamos enviando al index html una variable llamada title la cual almacena el valor q la funcion
+le asigna a title, que es welcome!! 
+
+Le pasamos datos de la bbdd al html
+
+def proyects(request):
+
+    proyects= list(Proyect.objects.values())
+
+    return render (request, 'proyects.html' ,{
+
+        'proyects': proyects
+    })
+
+RECORRER DATOS CUANDO RECIBIMOS LISTA DE ELEMENTOS
+
+
+{% for i in proyects %}
+
+<h1>{{proyects}}</h1>
+
+{% endfor %}
+
+done= models.BaooleanField(default=False) 
+con esto todas las tareas tienen una columna nueva llamada donde que almacena un 0 o un 1, por defecto un 0
+pero nos sirve para usarlo como condicionasl en un if adentro del html de las tareas y poder mostrar
+tarea hecha o pendiente 
+
+tambien agrega un checkbutton en el panel de administrador, el cual cambia el valor booleano
+
+NAVEGACION ENTRE PAGINAS
+
+-
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

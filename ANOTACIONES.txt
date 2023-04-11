@@ -1,0 +1,406 @@
+para aislar el proyecto del resto y evitar incompatibilidades creamos 
+un venv. nos ubicamos en la carpeta del proyecto desde el cmd e indicamos 
+py -m venv venv
+
+si no entra en el venv, lo activamos asi .\venv\Scripts\Activate
+
+instalamos django en el venv con pip install django 
+
+creamos el proyecto con django-admin startproject djangocrud . 
+
+las aplicaciones son las funcionalidades de django 
+
+para crear una app python manage.py startapp tasks (name) y la agregamos 
+a install apps y creamos su vista
+
+el request es un parametro para obtener info del cliente que visito la pag
+
+importamos el httpresponse para que la funcion nos retorne un elemento 
+a la url
+
+agregamos la url ademas de importar la view
+
+para retornar html's tenemos que crear una carpeta llamad templates dentro
+de la app que queremos que reciba dichos html
+
+def helloworld(request):
+
+    return render(request, 'signup.html')
+
+el return es un render, pues debe renderizar un archivo aparte al de la view
+
+ademas del request que hace que el retorno sea a la web
+
+                    VALORES POR PARAMETRO 
+
+def helloworld(request):
+
+    title='Hola mundo'
+
+    return render(request, 'signup.html', {
+
+        'mytitle' : title
+    })
+
+le mandamos POR DICCIONARIO el parametro al html y se lo guardamos en una variable 
+y para llamarlo usamos {{mytitle}}
+
+
+                    FORMULARIOS DE AUTENTICACION 
+
+importando en views from django.contrib.auth.forms import UserCreationForm 
+
+lo enviamos por parametro y genera automaticamente un formulario de log.in
+
+<form action="/signup/">
+
+    {{form.as_p}}
+
+    <button>
+        Signup
+    </button>
+</form>
+
+mostrarmos el formulario en parrafos y cuando tocamos el boton, la info
+se envia a /signup/, donde debemos crear dicha ruta para que se almacene 
+la info
+
+el metodo post hace que los datos se envien sin mostrarse por url
+y para asegurar la url debemos activar el token csrf
+
+{% csrf_token %} en el html 
+
+!
+
+LOS DATOS POR DEFECTO O LOS DATOS INGRESADOS ANTERIOR A CERRAR LA SESION 
+LLEGAN POR GET, PERO LOS DATOS NUEVOS POR POST, COMO POR EJEMPLO LOS DE 
+UPDATE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+                        REGISTRO DE USUARIOS y guardar en bbd
+
+def signup (request):
+
+    if request.method == 'GET':
+
+        print("Enviando formulario")
+
+    else:
+        print("obteniendo datos")
+        print(request.POST)
+
+
+si los datos se reciben por POST tal como lo configuramos anteriormente, podemos 
+elegir que hacer con esos datos, tal como printearlos o guardarlos en una 
+BBDD
+
+una vez creado el user tenemos que hacer el migrate para crear las tablas 
+y el apply migrations cada vez que hagamos un cambio luego de haber ejecutado 
+el migrate
+
+
+ES IMPORTANTE crear una cookie en el navegador que almacene nuestra sesion
+pues esto la hace autentica, asique importamos login en views
+
+login(request, user)
+
+le enviamos por parametro el request web y la variable user de la vista
+que almacena los datos de la sesion, recordemos esto es fundamental para 
+autenticar la sesion en la pagina, pues sin esto creabamos el usuario 
+pero no usabamos su sesion.
+
+
+    -ERROR MANIPULADO 
+
+si ingresamos un usuario que ya existia, esto devuelve un integrity error de la 
+cookie, y este error si lo importamos podemos manipularlo para que no salte
+la pantalla de django, asique lo manipulamos desde el except 
+
+                      LOGOUT
+
+{% if user.is_authenticated %}
+            <li>
+                <a href="/logout">logout</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav
+
+cuando django detecta que se autentico un user,este crea una variable 
+global para que podamos usarla donde queramos. Si el user esta autenticado 
+se agrega a la barra de navegacion un elemento llamado logout, sino no
+
+
+
+LA VIEW-----
+
+importamos la funcion logout y creamos la view y url, en la view 
+llamamos a logout y le mandamos el request, es decir, los datos cargados 
+en la web y la funcion misma se encarga de buscar entre esos datos los que 
+sean datos de usuario 
+
+                    LOGIN 
+
+creamos una view que retorna un render y a ese render lo agregamos 
+a la nav bar y le creamos un html
+
+la view envia al html un formulario de logueo de django el cual 
+verifica si el user existe, authenticationform y llamamos al form, 
+el cual son inputs con label al cual debemos darle funcionalidades
+
+una vez hecho este html envia por metodo post los datos puestos en 
+los inputs
+
+para saber si estos datos coinciden con un user existente, usamos 
+el metodo authenticate que llega por contrib auth 
+
+resto en la view..............
+
+
+
+                MODELS Y  BBDD (sqlite3)
+
+armamos los campos y con makemigrations creamos la tabla, y migrate la carga 
+a la bbdd 
+
+para poder acceder y modificar la bbd desde la consola tenemos que ejecutar
+el shell 
+
+                        ADMIN Y SUPERUSER
+
+
+
+con createsuperuser y accediendo a /admin/ accedemos al panel de administrador 
+para poder acceder a las tablas desde el panel de administrador tenemos que 
+importarla en admin.py desde la carpeta de models y la enviamos con 
+
+admin.site.register(nametabla)
+
+y desde ese panel podemos administrar todas las tablas 
+
+para convertir en legible el titulo de la tarea le agregamos el str al model 
+
+def __str__ (self):
+
+        return self.title (variable que queremos trasnformar )
+
+
+ return self.title + '- by' + self.user.username agrega el nombre 
+ del user que lo creo
+
+
+
+            FORMULARIOS PERSONALIZADOS BASADOS EN TABLAS 
+
+creamos en la carpeta de la app forms.py 
+
+anotaciones en form.py
+
+            ENVIAR DATOS A BBDD 
+
+def create_task(request):
+
+    if request.method == 'GET':
+
+        return render (request, 'create_task.html', {
+
+        'form': TaskForm
+    })
+
+    else:
+        try:
+            
+            form= TaskForm(request.POST)
+            new_task = form.save(commit=False)
+            new_task.user= request.user
+            new_task.save()
+            return redirect('tasks')
+        
+        except ValueError:
+
+            return render (request, 'create_task.html', {
+
+                'form': TaskForm,
+                'error': 'Por favor indique datos validos'
+            })
+        
+'''
+
+creamos una variable formulario la cual almacena las 3 variables tal como indicamos 
+en el forms.
+
+la variable formulario va a gaurdar los datos PERO NO LOS ENVIA A LA BBDD (
+eso es el commit) , unicamente los guarda en la variable tarea
+
+
+el usuario de la tarea va a ser el mismo que le corresponda a la sesion 
+que envio la tarea, es decir, el usuario que estaba logueado cuando se creo
+
+se envia la tarea a la bbdd 
+
+se redirecciona a la pagina de tareas una vez terminamos el procedimiento
+'''
+
+
+                    LISTAR TAREAS GUARDADAS 
+
+en la vista creamos una variable donde guardemos las tareas 
+almacenadas en la bbdd 
+
+def tasks(request):
+
+    tasks= Task.objects.filter(user=request.user, datecompleted__isnull= True)
+    #solo muestra los datos del usuario logueado, no de los demas y las que 
+    #tienen el campo datecompleted en nulo, es decir, no estan hechas
+
+    return render(request, 'tasks.html', {
+
+        'tasks': tasks
+    })
+
+(el printeo esta en task.html)
+
+                        TASK DETAIL 
+
+todo detallado en las vistas y url 
+
+en cuanto a la navegacion, nos dirigimos a la pagina principal de las tareas 
+html 
+
+
+<li> 
+        <a href="{% url 'task_detail' task.id %}">
+            <h1> {{task.title}} </h1>
+        <p> {{task.description}}</p>
+        <p>{{task.user.username}}</p>
+        {% if task.important == True %}
+        <h1>Completada</h1>
+        {% endif %}
+        </a>
+
+</li>
+
+la tarea se convierte en un link, que nos redirige a la url renombrada como
+task detail, y el parametro que recibe esa url es la primary key de la tarea
+
+                
+
+                EDITAR UNA TAREA 
+
+en el task detail relleno un formulario como se indico en la view comentado
+y se lo envio al html y lo llamo dentro de un nuevo formulario 
+
+<form method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button>
+        Update
+    </button>
+</form>
+
+se envian por metodo post los datos del formulario nuevo, y al no indicar ruta
+este remplaza a el formulario que se encuentra en su misma ruta, y la accion 
+se lleva a cabo pulsando el update. En este caso el update no se realiza, pues 
+no remplaza los datos, asique cambiamos la view 
+
+
+def task_detail(request, task_id):
+    if request.method == 'GET':
+        #task= Task.objects.get(pk=task_id)
+        task= get_object_or_404(Task, pk=task_id)
+        form= TaskForm(instance=task) #rellenamos el formulario con los valores de task y lo guardamos en una variable
+        #y se lo pasamos al html
+        return render (request, 'task_detail.html', {'task': task , 'form': form})
+    else:
+          task= get_object_or_404(Task, pk=task_id)
+          form=TaskForm(request.POST, instance=task)
+          form.save()
+          return redirect('tasks')
+
+
+si la info en la base de datos es la default o fue la primera vez que 
+llega, se usa get. En este caso para el update significa que ya habia una 
+info antes y usamos el post para enviar informacion nueva.
+
+guardamos en una variable llamada task la tarea extraida del model task que 
+coincida con la primary key de task id que llega por parametro.
+
+en una variable form guardamos el formulario creado anteriormente, el cual 
+almacenaba 3 variables del model. Este formulario recibe los datos enviados 
+por POST que son correspondientes a la variable task creada anteriormente 
+
+
+luego se guarda y se redirecciona a la pestaña de tasks
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+                MARCAR COMO COMPLETADA TAREA O ELIMINARLA 
+
+
+en task detail agregamos un boton que nos permita marcar como compeltad 
+
+y agregamos una url 
+
+path('tasks/<int:task_id>/complete', views.task_detail, name='task_detail'),
+
+sigue en la view 
+
+luego de armar la view, hacemos un form boton que envie la tarea a una url
+aparte donde solo habra tareas completadas, es decir, una seccion especial 
+
+---ELIMINAR 
+
+hacemos lo mismo pero una url con tareas eliminadas 
+
+y creamos una view similar solo que en vez de guardar info nueva, la elimina 
+
+def delete_task(request, task_id):
+
+    task= get_object_or_404(Task, pk=task_id, user= request.user)
+
+    if request.method == 'POST':
+        task.delete()
+        return redirect ('tasks')
+
+
+
+                LISTAR TAREAS COMPLETADAS 
+
+
+creamos una url y una view 
+
+def tasks_completed(request):
+
+    tasks= Task.objects.filter(user=request.user, datedcompleted__isnull= False)
+
+    return render(request, 'tasks.html', {
+
+        'tasks': tasks
+    })
+
+
+la view es como las que muestra las tareas, pero en este caso la variable 
+dated completed null es falsa, es decir, si esta completada
+
+
+las url en la nav bar por ejemplo se llamam con {%%}
+
+
+                PROTEGER RUTAS PARA NO ACCEDER DESDE LA URL SIN LOGIN 
+
+agregamos @login_required    sobre las rutas que deben estar protegidas 
+
+el login required nos envia a LOGIN_URL, donde debemos indicar la url 
+donde se loguean los usuarios asique queda asi LOGIN_URL = '/signin'
+
+
+
+ESTILIZAR CON BOOSTRAP
+
+
+
+

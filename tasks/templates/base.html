@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD</title>
+</head>
+<body>
+
+    <nav>
+        <ul>
+            <li>
+                <a href="/">Home</a>
+            </li>
+
+            {% if user.is_authenticated %}
+            <li>
+                <a href="/tasks">TASKS PENDING</a>
+            </li>
+            <li>
+                <a href="tasks/create/">CREATE TASK</a>
+            </li>
+            
+            <li>
+                <a href="tasks_completed/">TASKS COMPLETED</a>
+            </li>
+            
+
+            
+            <li>
+                <a href="/logout">LOGOUT</a>
+            </li>
+            {% else %}
+            <li>
+                <a href="/signup">SIGNUP</a>
+            </li>
+            <li>
+                <a href="/signin">SIGNIN</a>
+            </li>
+
+            {% endif %}
+        </ul>
+    </nav>
+
+
+    {% block content %}
+    {%  endblock %}
+
+    
+</body>
+</html>
